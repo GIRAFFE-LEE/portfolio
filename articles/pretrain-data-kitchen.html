@@ -1,0 +1,213 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>大模型的训练数据，是怎么生产和质检的 — Giraffe</title>
+<meta name="theme-color" content="#0C0C0C">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Kanit:wght@400;500;900&display=swap">
+<link rel="stylesheet" href="https://fonts.loli.net/css2?family=Kanit:wght@400;500;900&display=swap">
+<style>
+:root{--bg:#0C0C0C;--fg:#D7E2EA;--ink:#16161a;--muted:#5d6470;--accent:#7621B0;
+  --font:'Kanit','PingFang SC','Hiragino Sans GB','Noto Sans CJK SC','Microsoft YaHei',sans-serif}
+*{box-sizing:border-box;margin:0;padding:0}
+html{background:var(--bg)}
+body{background:var(--bg);color:var(--fg);font-family:var(--font);-webkit-font-smoothing:antialiased;overflow-x:clip}
+a{color:inherit}
+.top{display:flex;justify-content:space-between;align-items:center;padding:24px clamp(20px,4vw,40px);font-weight:500;letter-spacing:.08em;text-transform:uppercase;font-size:14px}
+.top a{text-decoration:none;opacity:.85}.top a:hover{opacity:1}
+header.hd{max-width:900px;margin:0 auto;padding:clamp(40px,8vw,96px) clamp(20px,4vw,40px) clamp(48px,7vw,80px)}
+.kind{display:inline-block;border:1.5px solid rgba(215,226,234,.5);border-radius:999px;padding:6px 16px;font-size:13px;letter-spacing:.06em}
+h1{margin-top:24px;font-weight:900;line-height:1.2;font-size:clamp(1.9rem,5vw,3.4rem);letter-spacing:-.01em;
+  background:linear-gradient(180deg,#9aa3ad 0%,#E3EDF4 100%);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+.meta{margin-top:20px;font-size:14px;opacity:.6}
+main{background:#fff;color:var(--ink);border-radius:40px 40px 0 0;padding:clamp(40px,7vw,96px) clamp(20px,4vw,40px) 80px}
+@media(min-width:768px){main{border-radius:60px 60px 0 0}}
+article{max-width:720px;margin:0 auto;font-size:17px;line-height:1.95;font-weight:400}
+article p{margin:0 0 1.25em}
+article strong{font-weight:700;color:#000}
+article h1,article h2,article h3{font-weight:800;line-height:1.4;margin:2em 0 .8em;color:#000;-webkit-text-fill-color:currentColor;background:none}
+article h2{font-size:1.4em}article h3{font-size:1.18em}
+article ul,article ol{margin:0 0 1.25em 1.4em}
+article li{margin:.35em 0}
+article img{display:block;max-width:100%;height:auto;margin:1.6em auto;border-radius:16px;border:1px solid #eee}
+article blockquote,.callout{display:block;margin:1.6em 0;padding:18px 22px;border-left:4px solid var(--accent);background:#f6f2fb;border-radius:0 14px 14px 0;color:#2a2340}
+.callout p:last-child{margin-bottom:0}
+.callout.flow{text-align:center;border-left:0;border-radius:14px;line-height:2.1}
+.diagram img{border:0;border-radius:0;margin:1.2em auto;max-height:420px;width:auto}
+.tablewrap{overflow-x:auto;margin:1.6em 0}
+.tablewrap table{border-collapse:collapse;min-width:100%;font-size:15px;line-height:1.6}
+.tablewrap td,.tablewrap th{border:1px solid #e5e5ea;padding:10px 12px;vertical-align:top;text-align:left}
+.tablewrap th{background:#f4f4f7}
+article code{background:#f2f2f5;padding:.1em .35em;border-radius:6px;font-size:.92em}
+.end{max-width:720px;margin:64px auto 0;padding-top:28px;border-top:1px solid #e8e8ec;display:flex;justify-content:space-between;flex-wrap:wrap;gap:16px;font-size:15px}
+.end a{display:inline-flex;align-items:center;gap:8px;border-radius:999px;padding:12px 28px;text-decoration:none;font-weight:500;letter-spacing:.12em;text-transform:uppercase;font-size:13px}
+.end .back{border:2px solid var(--ink);color:var(--ink)}
+.end .talk{color:#fff;background:linear-gradient(123deg,#18011F 7%,#B600A8 37%,#7621B0 72%,#BE4C00 100%);outline:2px solid #fff;outline-offset:-3px}
+.progress{position:fixed;left:0;top:0;height:3px;width:0;background:linear-gradient(90deg,#B600A8,#7621B0);z-index:10}
+</style>
+</head>
+<body>
+<div class="progress" id="pg"></div>
+<nav class="top"><a href="../index.html#writing">← Giraffe</a><a href="../index.html#contact">Contact</a></nav>
+<header class="hd">
+  <span class="kind">科普 · 长文</span>
+  <h1>大模型的训练数据，是怎么生产和质检的</h1>
+  <div class="meta">李璐 Giraffe · 约 6 分钟读完</div>
+</header>
+<main>
+<article>
+
+
+<aside class="callout"><strong>——想象这是一家</strong>给大模型"做饭"的中央厨房，我们要把各种 raw 食材（互联网上的乱七八糟的数据）加工成模型能吃的"营养餐"。</aside>
+<h3>🍳 整体比喻：大模型的中央厨房</h3>
+<p>大模型训练就像喂一个超级巨婴吃饭。Pretrain/Midtrain 数据流程，就是<strong>从菜市场买菜 → 洗菜切菜 → 质检挑虫 → 营养配比 → 端上桌</strong>的全过程。</p>
+<h3>1️⃣ 数据引入 = 去菜市场进货</h3>
+<aside class="callout"><strong>开源数据集 / 网页 / 书籍 抓取与管理</strong></aside>
+<p>这就是采购员去各种地方进货：</p>
+<p>去<strong>开源菜市场</strong>（开源数据集）批发成箱的食材</p>
+<p>去<strong>互联网大集</strong>（网页）随手抓一把</p>
+<p>去<strong>书店</strong>（书籍）整本整本地搬</p>
+<p><strong>这整个厨房，是专门给"中训练"（Midtraining）阶段备菜的。</strong></p>
+<h3>2️⃣ 数据解析 = 拆包装</h3>
+<aside class="callout"><strong>json/txt 解析、html 解析、epub、PDF 解析</strong></aside>
+<p>买回来的食材包装各异：</p>
+<p>有的装在<strong>纸箱</strong>（json/txt）</p>
+<p>有的装在<strong>塑料袋</strong>（html 网页）</p>
+<p>有的装在<strong>铁罐头</strong>（PDF、epub 电子书）</p>
+<p>这一步就是<strong>拆包装</strong>，把里面的"肉"（纯文本内容）取出来。虚线框表示 epub/PDF 不好拆，可能要特殊工具。</p>
+<h3>3️⃣ 数据接入 = 入库登记 + 初步筛选</h3>
+<aside class="callout"><strong>MD5 去重、格式校验、路径校验、fasttext 语种划分、后训练通用质检、平台建卡</strong></aside>
+<p>拆完包装后，先别急着做菜，得在仓库门口过一遍：</p>
+<div class="tablewrap"><table>
+
+<tbody>
+<tr class="odd">
+<td>操作</td>
+<td>通俗解释</td>
+</tr>
+<tr class="even">
+<td><strong>MD5 去重</strong></td>
+<td>这箱菜是不是刚才已经搬过一箱了？一模一样的不要重复搬</td>
+</tr>
+<tr class="odd">
+<td><strong>格式合规校验</strong></td>
+<td>检查包装有没有破损、是不是我们要的规格</td>
+</tr>
+<tr class="even">
+<td><strong>存储路径校验</strong></td>
+<td>仓库货架号对不对，别放错地方以后找不到</td>
+</tr>
+<tr class="odd">
+<td><strong>fasttext 语种划分</strong></td>
+<td>这是中文白菜还是英文萝卜？分门别类放</td>
+</tr>
+<tr class="even">
+<td><strong>后训练通用质检</strong></td>
+<td>用自动化仪器快速扫一遍，明显烂掉的先扔掉</td>
+</tr>
+<tr class="odd">
+<td><strong>平台建卡</strong></td>
+<td>给每批货建个档案卡，记录从哪来、什么品质</td>
+</tr>
+</tbody>
+</table></div>
+<h3>4️⃣ 模态加工 = 深加工 / 翻译</h3>
+<aside class="callout"><strong>ASR（语种选择）、人工质检、后训练人工质检</strong></aside>
+<p>有些食材不是现成的文字，需要加工：</p>
+<p><strong>ASR</strong>：把<strong>语音</strong>（比如视频字幕、播客）转成文字，相当于"听写翻译"</p>
+<p><strong>人工质检</strong>：老师傅肉眼检查，要求<strong>合格率 &gt; 90%</strong>（比如看 PDF 解析出来的文字有没有乱码、缺页）</p>
+<p><strong>后训练人工质检</strong>：专门针对"后训练"（SFT/RLHF）阶段的数据，要求更细</p>
+<aside class="callout">这里有个硬指标："文档解析页数合格率 90% 以上"——意思是拆 PDF 不能拆一半漏一半，100 页的书至少得正确拆出 90 页。</aside>
+<h3>5️⃣ 质量监控 = 质检流水线（核心关卡）</h3>
+<aside class="callout"><strong>乱码检测、低质多维度、去重、子句去重、试题质量、后训练质检算子、specialtoken 替换</strong></aside>
+<p>这是整个厨房最忙的<strong>质检车间</strong>，一道道关卡过筛子：</p>
+<div class="tablewrap"><table>
+
+<tbody>
+<tr class="odd">
+<td>关卡</td>
+<td>通俗解释</td>
+</tr>
+<tr class="even">
+<td><strong>乱码检测（必检）</strong></td>
+<td>这盘菜里有没有沙子？（比如 \x00\x01 乱码字符）——<strong>必检项，一个都不能漏</strong></td>
+</tr>
+<tr class="odd">
+<td><strong>低质多维度</strong></td>
+<td>从多个角度评判：是不是太短？是不是无意义重复？是不是广告垃圾？</td>
+</tr>
+<tr class="even">
+<td><strong>源内/全局签名去重</strong></td>
+<td>这批菜和仓库里已有的菜是不是重复？先查自家仓库（源内），再查全国仓库（全局）</td>
+</tr>
+<tr class="odd">
+<td><strong>子句去重</strong></td>
+<td>就算整篇文章不一样，但里面某句话反复出现（比如"点击关注不迷路"），也要把重复的句子删掉</td>
+</tr>
+<tr class="even">
+<td><strong>试题质量</strong></td>
+<td>如果是考试题/题库数据，专门检查题目质量</td>
+</tr>
+<tr class="odd">
+<td><strong>后训练质检算子</strong></td>
+<td>专门给后训练阶段数据用的特殊检测工具</td>
+</tr>
+<tr class="even">
+<td><strong>specialtoken 替换</strong></td>
+<td>把食材里的"特殊标记"统一换成标准标签。比如把各种奇怪的换行符、分隔符统一格式</td>
+</tr>
+</tbody>
+</table></div>
+<aside class="callout">小字提示："高质量数据可跳过全环节"——意思是<strong>免检产品</strong>（已经知道很干净的数据）可以走绿色通道，不用排队过每一道安检。</aside>
+<h3>6️⃣ 准出检测 = 出厂前的最终抽检</h3>
+<aside class="callout"><strong>人工算子阈值、自定义规则过滤、人工随机抽样质检</strong></aside>
+<p>要出厂了，最后一道门：</p>
+<p><strong>人工算子阈值</strong>：设定一个分数线，比如"纯度必须达到 95 分才能出厂"</p>
+<p><strong>自定义规则过滤</strong>：客户有特殊要求？比如"不要带特殊 token 的数据"，在这里统一过滤掉，顺便合并相同的 special token</p>
+<p><strong>人工随机抽样质检</strong>：随机抽几箱打开看看，人工确认没问题才盖章放行</p>
+<h3>7️⃣ 数据分析 = 给这批货做体检报告</h3>
+<aside class="callout"><strong>语料查询、数据集查询、数据画像、覆盖分析（benchmark 反查）</strong></aside>
+<p>货已经合格了，但还得分析一下这批食材的营养构成：</p>
+<p><strong>语料查询 / 数据集查询</strong>：这批货里具体有什么？有多少中文、多少英文、多少代码？</p>
+<p><strong>数据画像</strong>：用数据画像工具给这批数据"画个像"——像不像优质数据？分布均不均衡？</p>
+<p><strong>覆盖分析（benchmark 反查）</strong>：用基准测试题倒查——这批数据能不能覆盖模型需要考的知识点？有没有盲区？</p>
+<h3>8️⃣ 数据交付 = 打包发货</h3>
+<aside class="callout"><strong>数据集拆分合并、Part 均衡、数据压缩、存储路径生成</strong></aside>
+<p>分析完了，按订单要求打包：</p>
+<p><strong>拆分合并</strong>：客户要 1000 箱，每箱 100 斤，重新分装</p>
+<p><strong>Part 均衡</strong>：各种食材配比要均衡，不能全是白菜没有萝卜</p>
+<p><strong>数据压缩</strong>：抽真空压缩，省运输空间</p>
+<p><strong>存储路径生成</strong>：生成"快递单号"（数据在分布式存储上的路径），告诉训练平台"货放在哪个货架"</p>
+<h3>9️⃣ 上车 &amp; 训练 = 端上桌，开吃！</h3>
+<aside class="callout"><strong>H5 制作、数据发版、数据配比（上车平台）、Benchmark 监控、下游反馈</strong></aside>
+<p>终于到餐桌了：</p>
+<p><strong>H5 制作</strong>：做个漂亮的"菜单页面"（数据看板），展示这批数据的情况</p>
+<p><strong>数据发版</strong>：正式发布，像软件发版一样打上版本号（v1.0、v2.0）</p>
+<p><strong>数据配比（上车平台）</strong>：按菜谱比例下锅——多少中文、多少代码、多少领域数据，调比例</p>
+<p><strong>Benchmark 监控</strong>：模型吃完后考试，看看成绩有没有提高</p>
+<p><strong>下游反馈</strong>：如果模型考砸了（下游任务表现不好），<strong>反馈回最左边的"数据引入"</strong>，重新进货、重新洗——这就是"发现问题，持续优化"的闭环</p>
+<h3>🔝 顶部的"人工 + 自动化质检"</h3>
+<p>这条橙色横线贯穿了从<strong>数据解析</strong>到<strong>准出检测</strong>的整个过程，意思是：</p>
+<aside class="callout">全程都有<strong>机器人安检</strong>（自动化）+ <strong>老师傅抽查</strong>（人工），双保险。</aside>
+<h3>🔄 底部的"发现问题，持续优化"</h3>
+<p>这是一条<strong>反馈循环</strong>：</p>
+<aside class="callout flow">模型训练效果差<br>↓<br>下游反馈：这顿饭吃完拉肚子了<br>↓<br>回到源头：是不是菜没洗干净？是不是进了坏食材？<br>↓<br>从源头重新走一遍流程，优化改进</aside>
+<h3>🎯 一句话总结</h3>
+<p>整个流程讲的是<strong>大模型中训练数据的"中央厨房"全流程</strong>：</p>
+<aside class="callout"><strong>买菜（引入）→ 拆包装（解析）→ 入库安检（接入）→ 深加工（模态加工）→ 多道质检（质量监控）→ 出厂抽检（准出）→ 营养分析（数据分析）→ 打包发货（交付）→ 端上桌给模型吃（训练）→ 吃坏了反馈回来重做（持续优化）</strong></aside>
+<p>整个过程的核心就两个字：<strong>"干净"</strong> + <strong>"均衡"</strong>——既要洗掉垃圾数据，又要保证各种营养配比合理，最后还要根据"食客"（模型）的反应不断调整菜谱。</p>
+<p><a href="https://acn49p87mplu.feishu.cn/wiki/G8cQwujVyidDqKk0TZ5cBUQ1ngc">图中流程还可改进的地方</a></p>
+
+</article>
+<div class="end">
+  <a class="back" href="../index.html#writing">← 返回全部文章</a>
+  <a class="talk" href="../index.html#contact">Let's talk</a>
+</div>
+</main>
+<script>
+const pg=document.getElementById('pg');
+addEventListener('scroll',()=>{const h=document.documentElement;pg.style.width=(h.scrollTop/(h.scrollHeight-h.clientHeight)*100)+'%'},{passive:true});
+</script>
+</body>
+</html>

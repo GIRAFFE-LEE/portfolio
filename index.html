@@ -68,7 +68,7 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
   padding:0 24px 28px;gap:16px}
 @media(min-width:640px){.hero-bottom{padding-bottom:32px}}
 @media(min-width:768px){.hero-bottom{padding:0 40px 40px}}
-.hero-tag{color:var(--fg);font-weight:300;text-transform:uppercase;letter-spacing:.04em;line-height:1.35;
+.hero-tag{color:var(--fg);font-weight:300;text-transform:none;letter-spacing:.04em;line-height:1.35;
   font-size:clamp(.75rem,1.4vw,1.5rem);max-width:170px}
 @media(min-width:640px){.hero-tag{max-width:240px}}
 @media(min-width:768px){.hero-tag{max-width:300px}}
@@ -187,11 +187,46 @@ a.row .meta{font-size:clamp(.75rem,1.2vw,.95rem);opacity:.5;letter-spacing:.06em
 .shot.s3{height:calc(clamp(110px,15vw,210px) + clamp(130px,19vw,290px) + 12px)}
 @media(max-width:639px){.card-top{flex-wrap:wrap}.card-top .btn-ghost{order:3;margin-left:auto}}
 
+.shot.metric{display:flex;flex-direction:column;justify-content:flex-end;padding:clamp(16px,2.4vw,36px);
+  background:radial-gradient(120% 120% at 100% 0%,#7621B0 0%,#2a0f45 45%,#151018 100%);color:#fff}
+.shot.metric:nth-child(2){background:radial-gradient(120% 120% at 0% 0%,#B600A8 0%,#3a0d3c 45%,#151018 100%)}
+.metric .mbig{font-weight:900;letter-spacing:-.02em;line-height:1;font-size:clamp(1.8rem,4.6vw,4.2rem)}
+.metric .mlabel{font-size:clamp(.72rem,1.1vw,.95rem);opacity:.75;margin-top:.6em;letter-spacing:.04em}
+.metric.steps{justify-content:flex-start;background:linear-gradient(160deg,#1d1530 0%,#0f0d14 100%);border:1px solid rgba(215,226,234,.15)}
+.metric.steps .mlabel{text-transform:uppercase;letter-spacing:.16em;margin:0 0 .8em}
+.metric ol{list-style:none;counter-reset:st;display:flex;flex-direction:column;gap:clamp(8px,1.4vw,18px)}
+.metric li{counter-increment:st;display:flex;gap:12px;align-items:baseline;font-size:clamp(.8rem,1.35vw,1.15rem);line-height:1.45;color:var(--fg)}
+.metric li::before{content:counter(st,decimal-leading-zero);font-weight:800;color:#c58bff;flex:none;font-size:.85em}
+
+@media(max-width:639px){
+  .slot{height:auto;min-height:0;margin-bottom:20px}
+  .card{position:relative;top:auto!important;transform:none!important}
+  .mgrid{flex-direction:column}
+  .mgrid .c1{flex-direction:row}
+  .mgrid .c1,.mgrid .c2{width:100%}
+  .mgrid .c1 .shot{flex:1}
+  .mgrid .shot{height:auto!important;min-height:120px}
+  .metric .mbig{font-size:1.7rem}
+}
+
 /* ---------- 6 WRITING ---------- */
 .writing{margin-top:0;border-radius:40px 40px 0 0}
 @media(min-width:640px){.writing{border-radius:50px 50px 0 0}}
 @media(min-width:768px){.writing{border-radius:60px 60px 0 0}}
 
+a.row .cover{flex:none;width:clamp(72px,9vw,120px);aspect-ratio:3/4;border-radius:14px;overflow:hidden;background:#eee;
+  box-shadow:0 8px 20px rgba(12,12,12,.12);transition:transform .3s;align-self:center}
+a.row .cover img{width:100%;height:100%;object-fit:cover}
+a.row:hover .cover{transform:rotate(-3deg) scale(1.04)}
+@media(max-width:639px){a.row .num{display:none}}
+
+.writing .row h3{text-transform:none}
+a.row .cover.txt{display:flex;flex-direction:column;justify-content:space-between;padding:12px;color:#fff;
+  background:linear-gradient(150deg,#2a0f45 0%,#7621B0 55%,#B600A8 100%)}
+a.row .cover.txt.t1{background:linear-gradient(150deg,#0b1a3a 0%,#1d4ed8 60%,#7ee8fa 100%)}
+a.row .cover.txt.t2{background:linear-gradient(150deg,#3a1c00 0%,#BE4C00 55%,#ffb86b 100%)}
+a.row .cover.txt span{font-weight:900;line-height:1.05;font-size:clamp(15px,1.9vw,24px)}
+a.row .cover.txt small{font-size:10px;letter-spacing:.14em;text-transform:uppercase;opacity:.8}
 /* ---------- 7 CONTACT ---------- */
 .contact{text-align:center;padding-bottom:40px}
 .contact .big-title{font-size:clamp(3.4rem,14vw,200px);margin-bottom:28px}
@@ -344,17 +379,17 @@ a.row .meta{font-size:clamp(.75rem,1.2vw,.95rem);opacity:.5;letter-spacing:.06em
 const CONFIG = {
   name: "Giraffe",                    // 首屏大标题：Hi, I'm ___
   fullName: "李璐",
-  heroTag: "an ai product manager who evaluated llms from the inside, and builds ai apps from 0 to 1",
+  heroTag: "让 Agent 真正听懂用户需求的 AI 产品经理，也能把 AI 应用从 0 做到上线",
   avatar: "assets/avatar.png",         // 3D 头像（透明背景 PNG 最好）
 
-  about: "我做过一年半的大模型评测：在文心一言给模型回复打分，评测通用能力、创意写作、视频描述和文生图，也做过预训练数据质检。我知道一个模型「好不好用」，是怎么被一条条判断出来的。现在我用 Dify、Cursor 和各种大模型，把想法从 0 做到 1。我想做真正好用的 AI 产品。",
-  aboutChips: ["文心一言 · 模型评测 2025.04–2026.09", "杭州师范大学 · 计算机科学与技术 2024", "AI 产品经理训练营", "SQL · Python · Axure · Figma", "Dify · Cursor · Claude · GPT"],
+  about: "我在百度做了两年 AI 产品：先在文心大模型做基线能力评测，知道一个模型「好不好用」是怎么被一条条判断出来的；之后在秒哒（百度 AI 无代码应用开发平台）负责策划 Agent 的需求理解优化，从会话归因找到真问题，用澄清交互、SFT 数据和评测集把线上推倒重来率从 30% 降到 18%。我习惯先用数据找问题，再决定方案；也能自己用 Dify、Cursor、Codex 把一个想法从 0 做到上线。",
+  aboutChips: ["百度（深圳）2024.09–2026.09", "秒哒 · 产品经理 2025.03–2026.09", "文心大模型 · 产品经理助理 2024.09–2025.02", "杭州师范大学 · 计算机科学与技术 2020–2024", "Prompt · Dify · RAG · SFT · 模型评测", "SQL · Python · A/B 实验", "Axure · Figma · Cursor · Codex · Claude"],
 
   services: [
-    { title: "Model Evaluation", cn: "大模型评测", desc: "给模型回复打分（0–4 分，单轮与多轮），评测基础模型的通用能力、创意写作、视频描述与文生图；负责预训练数据质检和每日数据交付。" },
-    { title: "AI App Building", cn: "AI 应用搭建", desc: "用 Dify、Cursor、Claude、GPT 独立把 AI 应用从想法做到可用的产品，包括语音交互、对话助手和工作流。" },
-    { title: "Product Design", cn: "产品设计", desc: "从用户和场景出发做需求分析与竞品分析，写 PRD，用 Axure / Figma 画原型，把复杂功能收敛成一个能跑起来的 MVP。" },
-    { title: "Data Analysis", cn: "数据分析", desc: "用 SQL 和 Python 处理、分析数据，用数据而不是感觉来支持产品判断。" },
+    { title: "Agent Requirement Understanding", cn: "Agent 需求理解", desc: "从低满意会话里找问题：搭标签体系、每周抽样归因；设计需求澄清交互，在「理解准确」和「打扰用户」之间找平衡。" },
+    { title: "Model Evaluation & Data", cn: "模型评测与训练数据", desc: "大模型基线能力评测与 bad case 分析；搭建分层评测集，制定 SFT 数据标准，协同算法完成训练数据构建。" },
+    { title: "Data-Driven Iteration", cn: "数据驱动迭代", desc: "用 SQL / Python 做数据分析，熟悉留存、漏斗、转化指标；用评测集和 A/B 实验验证方案，用数据和算法、业务对齐目标。" },
+    { title: "AI App Building", cn: "AI 应用 0→1", desc: "需求、PRD、原型（Axure / Figma）到 Dify 工作流与 Agent 搭建，再用 Cursor、Codex、Claude 独立开发并部署上线。" },
   ],
 
   // 截图滚动带：放 assets/marquee/ 下的图片；img 留空就显示占位图
@@ -369,19 +404,42 @@ const CONFIG = {
 
   // 项目：每个项目 3 张图，放 assets/projects/<id>/1.png 2.png 3.png
   projects: [
+    { id: "miaoda", category: "Work · 百度秒哒 · 2025.03–2026.09", name: "秒哒 · 策划 Agent 需求理解优化",
+      summary: "秒哒向全社会开放后，用户从开发者扩展到不懂技术的大众，一句话需求越来越模糊，约 30% 的会话在首版应用生成后推倒重来。我先搭会话质量分析体系，归因发现约四成问题来自需求理解偏差，推动优化重心前移；再设计需求澄清交互、制定 SFT 数据标准、搭建评测集和灰度 A/B 实验。",
+      tags: ["会话归因", "澄清交互", "SFT 数据", "评测集", "A/B 实验"], link: "",
+      metrics: [
+        { big: "30% → 18%", label: "线上推倒重来率" },
+        { big: "68% → 85%", label: "需求理解准确率（离线评测集）" },
+        { steps: ["低满意会话标签体系 · 每周抽样 200 条归因", "需求澄清交互：模糊时最多追问 3 个选择题，可跳过", "SFT 数据标准 · 协同算法构建约 1.2 万条训练数据", "约 600 条分层评测集 + bad case 周会", "10% 灰度 A/B 实验验证效果"] },
+      ] },
     { id: "pet", category: "Personal · 个人项目", name: "宠伴 · 宠物店私域营销助手",
-      summary: "帮宠物店店长记住每只毛孩子的护理周期（粮食补货、驱虫、疫苗、洗护），到期自动列出「今天要联系谁」；再根据宠物档案和主人备注，用 AI 一键生成专属回访文案，四种风格可选，可带上本次优惠。",
-      tags: ["私域运营", "AI 文案生成", "客户分层", "移动端 MVP"], link: "" },
-    { id: "encore", category: "Course Project · 课程作业", name: "安可 Encore · 跨境追演 AI 搭子",
-      summary: "给第一次出境看演出的韩娱粉丝做的 AI 助手：韩文/英文官方公告粘进来，AI 提炼中文重点并可回溯原文；自动排出抢票 + 出行的追演行动卡；没抢到时给出正规补救途径，并识别「内部票」类可疑私信。内置演示回放模式，可完整体验澳门场流程。",
-      tags: ["公告理解", "行动卡", "防骗识别", "AI 助手 IP"], link: "" },
+      summary: "宠物店老板记不住每只宠物的护理周期，群发广告又容易被屏蔽。宠伴按粮食、驱虫、疫苗、洗护周期自动列出「今天要联系谁」，再用 Dify 工作流结合宠物档案和主人备注生成专属回访文案；AI 接口失败时自动降级为模板生成，保证核心流程可用。已部署上线并真机跑通。",
+      tags: ["独立完成", "Dify 工作流", "降级设计", "App 上线"], link: "" },
+    { id: "encore", category: "Personal · 个人项目", name: "安可 Encore · AI 追星助手",
+      summary: "面向第一次跨境看演出的韩娱粉丝：用 AI 解析韩文 / 英文演出公告，提炼中文重点并可回溯原文；生成开票行动卡与入场准备清单；抢票失败后给出正规补救途径，并识别「内部票」类可疑私信。内置演示回放模式，可完整体验澳门场流程。",
+      tags: ["独立完成", "公告理解", "行动卡", "防骗识别"], link: "" },
   ],
 
   // 文章：link 填文章链接；没有的话先填小红书主页链接
   writing: [
-    { title: "AI 已经能逆向一切了", platform: "小红书", date: "", summary: "从一个开源逆向项目讲起：AI 能把一个产品拆解到什么程度。", link: "" },
-    { title: "一看就懂的 RAG", platform: "小红书", date: "", summary: "用代码渲染的动画，把 RAG（检索增强生成）讲给完全没接触过的人听。", link: "" },
-    { title: "哪些 AI 订阅真的值得买", platform: "小红书", date: "", summary: "把主流 AI 订阅放在一起比较：每一档钱到底买到了什么。", link: "" },
+    { title: "AI 产品讲烂了「对话框」，下一个战场是代码里的每一个 if", platform: "长文", date: "约 23 分钟", cover: "assets/writing/long1.jpg",
+      summary: "两年来 AI 产品几乎都长成一个对话框，可业务流程里的判断一个都没交出去。从快慢分工、160 年前的经济学悖论，到四个能落地的场景和五步落地法。",
+      link: "articles/ai-beyond-chatbox.html" },
+    { title: "月活 2000 万的 AI 陪聊，破产了", platform: "小红书", date: "2026.10", cover: "assets/writing/1.jpg",
+      summary: "一款月活 2000 万、融资超 1.93 亿美元的 AI 陪聊产品走到破产。站在产品经理的视角，拆出 3 个教训。",
+      link: "https://www.xiaohongshu.com/discovery/item/6ad10fa2000000001b032dc0?source=webshare&xhsshare=pc_web&xsec_token=AB8mJrvdibNzizGjJwQ2KDVmd4DDIpQ5l0bJ2JjvPwa58=&xsec_source=pc_share" },
+    { title: "Vidu Q3：视频大模型的工业化转折点", platform: "长文", date: "约 6 分钟", cover: "assets/writing/long2.jpg",
+      summary: "用横纵分析法拆解 Vidu Q3：从 U-ViT 架构演进，到与 Sora、可灵、Runway 的竞争格局，再到「后期前置化」对内容生产的影响。",
+      link: "articles/vidu-q3.html" },
+    { title: "看懂 KV Cache，就懂 DeepSeek 为什么这么便宜", platform: "小红书", date: "2026.10", cover: "assets/writing/2.jpg",
+      summary: "AI 一图看懂：DeepSeek 新模型又强又便宜，答案藏在一个叫 KV Cache 的东西里。",
+      link: "https://www.xiaohongshu.com/discovery/item/6ad39f60000000000200f5f2?source=webshare&xhsshare=pc_web&xsec_token=ABcYd3O1uKGln3sVBdCOzOODlogUkmXxjxnFawveUVD-U=&xsec_source=pc_share" },
+    { title: "大模型的训练数据，是怎么生产和质检的", platform: "长文", date: "约 6 分钟", cover: "assets/writing/long3.jpg",
+      summary: "把预训练 / 中训练的数据流水线比作大模型的中央厨房：从进货、洗菜、质检到配比上桌，一步步讲清预训练 / 中训练数据是怎么做出来的。",
+      link: "articles/pretrain-data-kitchen.html" },
+    { title: "GitHub 爆火！AI 已经能「逆向一切」了", platform: "小红书", date: "2026.10", cover: "assets/writing/3.jpg",
+      summary: "拆解 12.4 万 Star 的开源项目 REA：AI 是怎么从 App 行为一路逆向到二进制的，附 4 个离谱案例。",
+      link: "https://www.xiaohongshu.com/discovery/item/6acd1189000000001a028c5f?source=webshare&xhsshare=pc_web&xsec_token=ABSCVwmRw4vYMrjafq1u2pt2LmJQn8QG2Ps73yLZHZBpI=&xsec_source=pc_share" },
   ],
 
   contact: {
@@ -390,7 +448,7 @@ const CONFIG = {
     wechat: "giraffelee9999",
     xhs: "https://www.xiaohongshu.com/user/profile/5d051f63000000001101c8ed",
     xhsName: "看我的小红书",
-    resume: "",          // 简历做好后放 assets/resume.pdf，这里改成 "assets/resume.pdf"
+    resume: "assets/resume.pdf",
   },
 };
 
@@ -506,6 +564,14 @@ $('#serviceList').innerHTML = CONFIG.services.map((s, i) => `
   </div>`).join('');
 
 /* ---------- PROJECTS (sticky stacking cards) ---------- */
+function metricsHTML(m){
+  const [a,b,c] = m;
+  const tile = (x, cls) => `<div class="shot ${cls} metric"><div class="mbig">${esc(x.big)}</div><div class="mlabel">${esc(x.label)}</div></div>`;
+  return `<div class="card-imgs mgrid">
+    <div class="c1">${tile(a,'s1')}${tile(b,'s2')}</div>
+    <div class="c2"><div class="shot s3 metric steps"><div class="mlabel">How I did it</div><ol>${c.steps.map(t => `<li>${esc(t)}</li>`).join('')}</ol></div></div>
+  </div>`;
+}
 const P = CONFIG.projects, N = P.length;
 $('#stack').innerHTML = P.map((p, i) => {
   const im = n => imgOrMock(`assets/projects/${p.id}/${n}.png`, ['界面截图','流程 / 原型','核心功能'][n-1], `assets/projects/${p.id}/${n}.png`, i * 3 + n);
@@ -516,10 +582,10 @@ $('#stack').innerHTML = P.map((p, i) => {
         <p>${esc(p.summary)}</p><div class="tags">${(p.tags||[]).map(t => `<span>${esc(t)}</span>`).join('')}</div></div>
       ${p.link ? `<a class="btn-ghost" href="${esc(p.link)}" target="_blank" rel="noopener">Live Project ↗</a>` : ''}
     </div>
-    <div class="card-imgs">
+    ${p.metrics ? metricsHTML(p.metrics) : `<div class="card-imgs">
       <div class="c1"><div class="shot s1">${im(1)}</div><div class="shot s2">${im(2)}</div></div>
       <div class="c2"><div class="shot s3">${im(3)}</div></div>
-    </div>
+    </div>`}
   </article></div>`;
 }).join('');
 const stack = $('#stack'), cards = [...stack.querySelectorAll('.card')];
@@ -543,8 +609,9 @@ const arrow = `<svg width="40%" viewBox="0 0 24 24" fill="none" stroke="currentC
 $('#writingList').innerHTML = CONFIG.writing.map((w, i) => {
   const href = w.link || CONFIG.contact.xhs || '#writing';
   const meta = [w.platform, w.date].filter(Boolean).join(' · ');
-  return `<a class="row" href="${esc(href)}" ${w.link || CONFIG.contact.xhs ? 'target="_blank" rel="noopener"' : ''} data-fade style="--fdl:${i * .1}s">
+  return `<a class="row" href="${esc(href)}" ${/^https?:/.test(href) ? 'target="_blank" rel="noopener"' : ''} data-fade style="--fdl:${i * .1}s">
     <div class="num">${pad2(i + 1)}</div>
+    ${w.cover ? `<div class="cover"><img src="${esc(w.cover)}" alt="" loading="lazy" onerror="this.parentNode.remove()"></div>` : (w.coverText ? `<div class="cover txt t${w.tone||0}"><span>${esc(w.coverText).replace(/\n/g,'<br>')}</span><small>Long read</small></div>` : '')}
     <div><div class="meta">${esc(meta)}</div><h3>${esc(w.title)}</h3><p>${esc(w.summary)}</p></div>
     <span class="arrow">${arrow}</span></a>`;
 }).join('');
